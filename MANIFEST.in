@@ -1,0 +1,3 @@
+include *.markdown *.txt
+recursive-include rsd *.ctl *.dat
+recursive-include examples *.txt *.aa

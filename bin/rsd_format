@@ -1,0 +1,51 @@
+#!/usr/bin/env python
+
+# RSD: The reciprocal smallest distance algorithm.
+#   Wall, D.P., Fraser, H.B. and Hirsh, A.E. (2003) Detecting putative orthologs, Bioinformatics, 19, 1710-1711.
+# Original Author: Dennis P. Wall, Department of Biological Sciences, Stanford University.
+# Author: Todd F. DeLuca, Center for Biomedical Informatics, Harvard Medical School
+# Contributors: I-Hsien Wu, Computational Biology Initiative, Harvard Medical School
+
+import argparse
+import os
+import shutil
+
+import rsd
+
+
+def main():
+    # create command line parser for "format" command
+    formatDesc = ('Reciprocal smallest distance (RSD) uses BLAST to search for putative orthologs.  ' +
+                  'This command formats a FASTA-formatted genome for use with BLAST.  ' +
+                  'By default, index names are derived from the name of GENOME and the indexes are placed in the same dir as GENOME.  ' +
+                  'If DIR is specified, GENOME is copied to DIR, and indexes are placed in DIR.')
+    parser = argparse.ArgumentParser(description=formatDesc)
+    parser.add_argument('-d', '--dir', help='Dir where BLAST indexes will be put.  Default: the directory containing GENOME.')
+    parser.add_argument('-g', '--genome', required=True, help='FASTA format protein sequence file, with unique ids on each nameline either in the form ">id" or ">ns|id|...".')
+    parser.add_argument('-v', '--verbose', default=False, action='store_true')
+    args = parser.parse_args()
+
+    srcPath = os.path.abspath(os.path.expanduser(args.genome))
+
+    # copy GENOME to DIR if necessary
+    if args.dir:
+        destDir = os.path.abspath(os.path.expanduser(args.dir))
+        destPath = os.path.join(destDir, os.path.basename(srcPath))
+        if srcPath != destPath:
+            if args.verbose:
+                print 'copying {} to {}'.format(srcPath, destPath)
+            shutil.copyfile(srcPath, destPath)
+    else:
+        destPath = srcPath
+
+    # formatting puts blast indexes in the same dir as destPath.
+    if args.verbose:
+        print 'formatting {}'.format(destPath)
+    rsd.formatForBlast(destPath)
+
+
+if __name__ == '__main__':
+   main()
+
+   
+# last line

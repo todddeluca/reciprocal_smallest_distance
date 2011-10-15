@@ -1,0 +1,22 @@
+# Ignore Mac OS X metadata files
+.DS_Store
+
+# Ignore backups and compiled files
+*~
+*.py[co]
+*.old
+*.class
+#*#
+
+# Ignore dirs from packaging and distributing
+dist
+build
+reciprocal_smallest_distance.egg-info
+MANIFEST
+
+# Ignore all tmp dirs and everything in them
+tmp/*
+tmp/**/*
+**/tmp/*
+**/tmp/**/*
+
