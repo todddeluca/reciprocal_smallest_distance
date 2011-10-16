@@ -1,13 +1,23 @@
-Author: Todd F. DeLuca  
+# Reciprocal Smallest Distance
+
+Authors: Todd F. DeLuca, Dennis P. Wall  
 Organization: Wall Laboratory, Center for Biomedical Informatics, Harvard Medical School, USA, Earth, Sol System, Orion Arm, Milky Way.  
 Date: 2011/08/29  
 
-This package contains the scripts needed to run the Reciprocal Smallest Distance (RSD) ortholog detection algorithm as well as examples of input and output files.
+
+## Introduction
+
+Wall, D.P., Fraser, H.B. and Hirsh, A.E. (2003) Detecting putative orthologs, Bioinformatics, 19, 1710-1711.
+
+The reciprocal smallest distance (RSD) (Wall, et al., 2003. http://bioinformatics.oxfordjournals.org/content/19/13/1710) algorithm accurately infers orthologs between pairs of genomes by considering global sequence alignment and maximum likelihood evolutionary distance between sequences.  Orthologs inferred with RSD for many species are available at Roundup (http://roundup.hms.harvard.edu/), which provides multi-species clusters of orthologous genes, output in formats for other phylogenetics packages, and sequence metadata such as Gene Ontology terms and database cross-references.
+
+This package contains source code, scripts for running RSD, and example input and output files.
 
 - README.md:  the file you are reading now
 - bin/rsd_search: a script that runs the reciprocal smallest distance (RSD) algorithm to search for orthologs.
+- bin/rsd_blast: a script that computes and saves BLAST hits for use in multiple runs of RSD.
 - bin/rsd_format: a script that turns FASTA-formatted genomes into BLAST-formatted indexes.
-- rsd/: package implementing the RSD algorithm.  
+- rsd/: python package implementing the RSD algorithm.  
 - rsd/jones.dat, rsd/codeml.ctl:  used by codeml/paml to compute the evolutionary distance between two sequences.
 - examples/:  a directory containing examples of inputs and outputs to rsd, including fasta-formatted genome protein sequence files,
  a query sequence id file (for --ids), and an orthologs output file.
@@ -17,7 +27,7 @@ This package contains the scripts needed to run the Reciprocal Smallest Distance
 
 ### Prerequisites
 
-RSD depends on Python, NCBI BLAST, PAML, and Kalign.  It has been tested to work with the following versions.  It might work with other versions too.
+RSD depends on Python, NCBI BLAST, PAML, and Kalign.  It has been tested to work with the versions below.  It might work with other versions too.
 
 Install:
 
@@ -28,7 +38,7 @@ Install:
 
 Add the executables for python (version 2.7), makeblastdb, blastp, codeml, and kalign, to your PATH.
 
-### Installing from a tarball
+### Installing From a Tarball
 
 Download and untar the latest version from github:
 
@@ -53,32 +63,72 @@ You can optionally specify a file containing ids using the `--ids` option.  Then
 Using `--divergence` and `--evalue`, you have the option of using different thresholds from the defaults.
 
 
-Get help on how to run rsd_search:
+Get help on how to run `rsd_search`, `rsd_blast`, or `rsd_format`:
     
     rsd_search -h
+    rsd_blast -h
+    rsd_format -h
 
 
-Find orthologs between all the sequences in the query and subject genomes.
-
-    rsd_search -d 0.2 -e 1e-20 -q examples/genomes/Mycoplasma_genitalium.aa/Mycoplasma_genitalium.aa \
-    --subject-genome=examples/genomes/Mycobacterium_leprae.aa/Mycobacterium_leprae.aa \
-    -o examples/Mycoplasma_genitalium.aa_Mycobacterium_leprae.aa_0.2_1e-20.orthologs.txt
-
-
-Find orthologs using non-default divergence and evalue thresholds
+Find orthologs between all the sequences in the query and subject genomes, using default divergence and evalue thresholds
 
     rsd_search -q examples/genomes/Mycoplasma_genitalium.aa/Mycoplasma_genitalium.aa \
     --subject-genome=examples/genomes/Mycobacterium_leprae.aa/Mycobacterium_leprae.aa \
-    -o examples/Mycoplasma_genitalium.aa_Mycobacterium_leprae.aa_0.8_1e-5.orthologs.txt \
-    -d 0.8 -e 1e-5
+    -o Mycoplasma_genitalium.aa_Mycobacterium_leprae.aa_0.8_1e-5.orthologs.txt
 
 
-Find orthologs between all the sequences in the query and subject genomes using genomes that have already been formatted for blast.
+Find orthologs using several non-default divergence and evalue thresholds
 
     rsd_search -q examples/genomes/Mycoplasma_genitalium.aa/Mycoplasma_genitalium.aa \
     --subject-genome=examples/genomes/Mycobacterium_leprae.aa/Mycobacterium_leprae.aa \
-    -o examples/Mycoplasma_genitalium.aa_Mycobacterium_leprae.aa_0.8_1e-5.orthologs.txt \
+    -o Mycoplasma_genitalium.aa_Mycobacterium_leprae.aa.several.orthologs.txt \
+    --de 0.2 1e-20 --de .5 0.00001 --de 0.8 0.1
+
+
+It is not necessary to format a FASTA file for BLAST or compute BLAST hits because `rsd_search` does it for you.  
+However if you plan on running `rsd_search` multiple times for the same genomes, especially for large genomes, 
+you can save time by using `rsd_format` to preformatting the FASTA files and `rsd_blast` to precomputing the BLAST hits.
+When running `rsd_blast`, make sure to use an --evalue as large as the largest evalue threshold you intend to give to `rsd_search`.
+
+Here is how to format a pair of FASTA files in place:
+
+    rsd_format -g examples/genomes/Mycoplasma_genitalium.aa/Mycoplasma_genitalium.aa
+    rsd_format -g examples/genomes/Mycobacterium_leprae.aa/Mycobacterium_leprae.aa
+    
+And here is how to format the FASTA files, putting the results in another directory (the current directory in this case)
+
+    rsd_format -g examples/genomes/Mycoplasma_genitalium.aa/Mycoplasma_genitalium.aa -d .
+    rsd_format -g examples/genomes/Mycobacterium_leprae.aa/Mycobacterium_leprae.aa -d .
+
+Here is how to compute forward and reverse blast hits (using the default evalue):
+
+    rsd_blast -v -q examples/genomes/Mycoplasma_genitalium.aa/Mycoplasma_genitalium.aa \
+    --subject-genome=examples/genomes/Mycobacterium_leprae.aa/Mycobacterium_leprae.aa \
+    --forward-hits q_s.hits --reverse-hits s_q.hits
+
+Here is how to compute forward and reverse blast hits for `rsd_search`, using genomes that have already been formatted for blast
+and a non-default evalue
+
+    rsd_blast -v -q Mycoplasma_genitalium.aa \
+    --subject-genome=Mycobacterium_leprae.aa \
+    --forward-hits q_s.hits --reverse-hits s_q.hits \
+    --no-format --evalue 0.1
+
+Find orthologs between all the sequences in the query and subject genomes using genomes that have already been formatted for blast
+
+    rsd_search -q Mycoplasma_genitalium.aa \
+    --subject-genome=Mycobacterium_leprae.aa \
+    -o Mycoplasma_genitalium.aa_Mycobacterium_leprae.aa_0.8_1e-5.orthologs.txt \
     --no-format
+
+
+Find orthologs between all the sequences in the query and subject genomes using hits that have already been computed.  Notice that --no-format 
+is included, because since the blast hits have already been computed the genomes do not need to be formatted for blast.
+
+    rsd_search -v --query-genome Mycoplasma_genitalium.aa \
+    --subject-genome=Mycobacterium_leprae.aa \
+    -o Mycoplasma_genitalium.aa_Mycobacterium_leprae.aa.default.orthologs.txt \
+    --forward-hits q_s.hits --reverse-hits s_q.hits --no-format
 
 
 Find orthologs for specific sequences in the query genome.  For finding orthologs for only a few sequences, using `--no-blast-cache` can
@@ -90,19 +140,36 @@ speed up computation.  YMMV.
     --ids examples/Mycoplasma_genitalium.aa.ids.txt --no-blast-cache
 
 
-## Formatting FASTA Files For BLAST
+## Output Formats
 
-It is not necessary to format a fasta file for BLAST, because rsd_search does it for you.  However should you find yourself running
-the program multiple times, especially for large genomes which take some time to format, preformatting the fasta files and 
-then running `rsd_search` with the `--no-format` option can save you time.  Here is how to format a FASTA file in place:
+Orthologs can be saved in several different formats using the `--outfmt` option of `rsd_search`.  The default format, `--outfmt -1`, refers to `--outfmt 3`.
+Inspired by Uniprot dat files, a set of orthologs starts with a parameters line, then has 0 or more ortholog lines, then has an end line.
+The parametes are the query genome name, subject genome name, divergence threshold, and evalue threshold.  Each ortholog is on a single line listing 
+the query sequence id, the subject sequence id, and the maximum likelihood distance estimate.  This format can represent orthologs for multiple
+sets of parameters in a single file as well as sets of parameters with no orthologs.  Therefore it is suitable for use with `rsd_search` when specifying
+multiple divergence and evalue thresholds.
 
-    rsd_format -g examples/genomes/Mycoplasma_genitalium.aa/Mycoplasma_genitalium.aa -v
+Here is an example containing 2 parameter combinations, one of which has no orthologs:
+
+    PA\tLACJO\tYEAS7\t0.2\t1e-15
+    OR\tQ74IU0\tA6ZM40\t1.7016
+    OR\tQ74K17\tA6ZKK5\t0.8215
+    //
+    PA\tMYCGE\tMYCHP\t0.2\t1e-15
+    //
     
-And here is how to format the FASTA file, putting the results in a specific directory:
+The original format of RSD, `--outfmt 1`, is provided for backward compatibility.  Each line contains an ortholog, represented as subject sequence id, query sequence id, and maximum likelihood distance estimate.  It can only represent a single set of orthologs in a file.
 
-    rsd_format -g examples/genomes/Mycoplasma_genitalium.aa/Mycoplasma_genitalium.aa -v -d /my/place/for/genomes
+Example:
+
+    A6ZM40\tQ74IU0\t1.7016
+    A6ZKK5\tQ74K17\t0.8215
+
+Also provided for backward compatibility is a format used internally by Roundup (http://roundup.hms.harvard.edu/) which is like the original RSD format, except the query sequence id column is before the subject sequence id.
+
+Example:
+
+    Q74IU0\tA6ZM40\t1.7016
+    Q74K17\tA6ZKK5\t0.8215
 
 
-## Extras
-
-A user might also want to change the alpha shape parameter for the gamma distribution used in the likelihood calculations of the codeml package of paml.  This can be done by editing the codeml.ctl file included in the distribution.  See the documentation for codeml for more details.

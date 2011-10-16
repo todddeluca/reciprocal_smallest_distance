@@ -21,27 +21,14 @@ def main():
                   'If DIR is specified, GENOME is copied to DIR, and indexes are placed in DIR.')
     parser = argparse.ArgumentParser(description=formatDesc)
     parser.add_argument('-d', '--dir', help='Dir where BLAST indexes will be put.  Default: the directory containing GENOME.')
-    parser.add_argument('-g', '--genome', required=True, help='FASTA format protein sequence file, with unique ids on each nameline either in the form ">id" or ">ns|id|...".')
-    parser.add_argument('-v', '--verbose', default=False, action='store_true')
+    parser.add_argument('-g', '--genome', required=True, help='FASTA format protein sequence file, with unique ids on each nameline either in the form ">id" or ">namespace|id|...".')
     args = parser.parse_args()
 
-    srcPath = os.path.abspath(os.path.expanduser(args.genome))
-
-    # copy GENOME to DIR if necessary
     if args.dir:
-        destDir = os.path.abspath(os.path.expanduser(args.dir))
-        destPath = os.path.join(destDir, os.path.basename(srcPath))
-        if srcPath != destPath:
-            if args.verbose:
-                print 'copying {} to {}'.format(srcPath, destPath)
-            shutil.copyfile(srcPath, destPath)
+        destFasta = rsd.copyFastaArg(args.genome, args.dir)
+        rsd.formatFastaArg(destFasta)
     else:
-        destPath = srcPath
-
-    # formatting puts blast indexes in the same dir as destPath.
-    if args.verbose:
-        print 'formatting {}'.format(destPath)
-    rsd.formatForBlast(destPath)
+        rsd.formatFastaArg(args.genome)
 
 
 if __name__ == '__main__':

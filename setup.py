@@ -24,15 +24,15 @@ if sys.version_info <= (2, 6):
 setup(
     name = "reciprocal_smallest_distance",
     version = rsd.__version__,
-    author = "Todd F. DeLuca",
+    author = "Todd F. DeLuca, Dennis P. Wall",
     author_email = "todd_deluca@hms.harvard.edu",
     description = "Reciprocal Smallest Distance (RSD) finds pairwise orthologous genes using global sequence alignment and maximum likelihood evolutionary distance estimates.",
     license = "MIT",
     keywords = "genome ortholog algorithm",
     platforms = "Posix; MacOS X",
-    url = "http://roundup.hms.harvard.edu/",   # project home page, if any
-    download_url = "http://roundup.hms.harvard.edu/static/download/rsd-%s.tgz"%rsd.__version__,
-    scripts = ['bin/rsd_search', 'bin/rsd_format'],
+    url = "https://github.com/todddeluca/reciprocal_smallest_distance",   # project home page, if any
+    download_url = "https://github.com/todddeluca/reciprocal_smallest_distance/downloads",
+    scripts = ['bin/rsd_search', 'bin/rsd_format', 'bin/rsd_blast'],
     packages = ['rsd'],
     package_data = {
         'rsd': ['*.ctl', '*.dat'],

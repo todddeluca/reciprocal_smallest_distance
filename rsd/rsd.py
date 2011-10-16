@@ -67,6 +67,9 @@ def getHitId(hit):
 
 
 def getHitEvalue(hit):
+    '''
+    returns evalue as a float
+    '''
     return hit[1]
 
 
@@ -266,8 +269,9 @@ def makeGetSeqForId(genomeFastaPath):
 def makeGetHitsOnTheFly(genomeIndexPath, evalue, workingDir='.'):
     '''
     genomeIndexPath: location of blast formatted indexes.  usually same directory/name as genome fasta path
-    returns: a function that returns that takes as input a sequence id and sequence and returns the blast hits
+    evalue: float or string.  Hits with evalues >= evalue will not be included in the returned blast hits.
     workingDir: a directory in which to create, use, and delete temporary files and dirs.
+    returns: a function that returns that takes as input a sequence id and sequence and returns the blast hits
     '''
     def getHitsOnTheFly(seqid, seq):
         with nested.NestedTempDir(dir=workingDir, nesting=0) as tmpDir:
@@ -293,7 +297,8 @@ def makeGetSavedHits(filename):
 
 def getGoodEvalueHits(seqId, seq, getHitsFunc, getSeqFunc, evalue):
     '''
-    returns: a list of pairs of (seqid, sequence, evalue) that have an evalue below evalue
+    evalue: a float.
+    returns: a list of pairs of (hitSeqId, hitSequence, hitEvalue) that have a hitEvalue below evalue.  hitEvalue is a float.
     '''
     goodhits = []
 
@@ -427,7 +432,7 @@ def computeOrthologs(queryFastaPath, subjectFastaPath, divEvalues, getForwardHit
     '''
     queryFastaPath: fasta file path for query genome.
     subjectFastaPath: fasta file path for subject genome.
-    divEvalues: list of (div, evalue) tuples.  orthologs for the given div and evalue combinations are computed.
+    divEvalues: list of (div, evalue) tuples.  orthologs are computed using the given div and evalue thresholds.  div and evalue can be a float or string.
     getForwardHits: a function mapping a query seq id to a list of subject genome blast hits.  see makeGetSavedHits() and makeGetHitsOnTheFly().
     getReverseHits: a function mapping a subject seq id to a list of query genome blast hits.  see makeGetSavedHits() and makeGetHitsOnTheFly().
     querySeqIds: a list of sequence ids for the query genome.  orthologs are only computed for those sequences.
@@ -477,6 +482,7 @@ def _computeOrthologsSub(querySeqIds, getQuerySeqFunc, getSubjectSeqFunc, divEva
     getQuerySeqFunc: a function that takes a seq id and returns the matching sequence from the query genome.
     getSubjectSeqFunc: a function that takes a seq id and returns the matching sequence from the subject genome.
     divEvalues: a list of (div, evalue) pairs which are thresholds for finding orthologs.  All pairs are searched simultaneously.
+      div can be a float or string.  So can evalue.
     getForwardHits: a function that takes a query seq id and a query seq and returns the blast hits in the subject genome.
     getReverseHits: a function that takes a subject seq id and a subject seq and returns the blast hits in the query genome.
     find orthologs for every sequence in querySeqIds and every (div, evalue) combination.
@@ -641,6 +647,38 @@ def writeToOutfile(orthologs, outfile):
     data = ''.join(['%s\t%s\t%s\n'%(query, subject, distance) for query, subject, distance in orthologs])
     with open(outfile, 'w') as fh:
         fh.write(data)
+
+
+###################################
+# COMMAND-LINE PROCESSING FUNCTIONS
+###################################
+
+def copyFastaArg(srcFile, destDir):
+    '''
+    srcFile: FASTA format genome file.
+    destDir: where to move the fasta file.
+    Copy the source file to the destination dir.  If the source file is already in the destination dir, it will not be copied.
+    return: path of the copied fasta file.
+    '''
+    # use absolute paths
+    srcFile = os.path.abspath(os.path.expanduser(srcFile))
+    destDir = os.path.abspath(os.path.expanduser(destDir))
+    destFile = os.path.join(destDir, os.path.basename(srcFile))
+    
+    # copy GENOME to DIR if necessary
+    if srcFile != destFile:
+        shutil.copyfile(srcFile, destFile)
+    return destFile
+
+    
+def formatFastaArg(fastaFile):
+    '''
+    formatting puts blast indexes in the same dir as fastaFile.
+    returns: fastaFile
+    '''
+    fastaFile = os.path.abspath(os.path.expanduser(fastaFile))
+    formatForBlast(fastaFile)
+    return fastaFile
 
 
 if __name__ == '__main__':

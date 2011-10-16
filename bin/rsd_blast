@@ -1,0 +1,70 @@
+#!/usr/bin/env python
+
+# RSD: The reciprocal smallest distance algorithm.
+#   Wall, D.P., Fraser, H.B. and Hirsh, A.E. (2003) Detecting putative orthologs, Bioinformatics, 19, 1710-1711.
+# Original Author: Dennis P. Wall, Department of Biological Sciences, Stanford University.
+# Author: Todd F. DeLuca, Center for Biomedical Informatics, Harvard Medical School
+# Contributors: I-Hsien Wu, Computational Biology Initiative, Harvard Medical School
+
+import argparse
+import os
+import shutil
+
+import rsd
+
+        
+def main():
+
+    parser = argparse.ArgumentParser(description='Compute and save blast hits for use with the reciprocal smallest distance (RSD) algorithm.  One or both of --forward-hits and --reverse-hits is required.  Note: it is important that the evalue used here be the maximum evalue used in any subsequent rsd_search using these saved hits.')
+    parser.add_argument('-q', '--query-genome', required=True, help='FASTA format protein sequence file, with unique ids on each nameline either in the form ">id" or ">namespace|id|...".')
+    parser.add_argument('-s', '--subject-genome', required=True, help='FASTA format protein sequence file, with unique ids on each nameline either in the form ">id" or ">namespace|id|...".')
+    parser.add_argument('-f', '--forward-hits', help='File in which to write the forward blast hits.  Forward means QUERY_GENOME is blasted against SUBJECT_GENOME.')
+    parser.add_argument('-r', '--reverse-hits', help='File in which to write the reverse blast hits.  Reverse means SUBJECT_GENOME is blasted against QUERY_GENOME.')
+    parser.add_argument('-e', '--evalue', default=1e-5, type=float, help='Default is %(default)s.  The maximum allowable evalue for stored hits.  This should correspond to the evalue threshold used with RSD, or the maximum evalue threshold if RSD is run with multiple divergence and evalue thresholds.')
+    parser.add_argument('--no-format', default=False, action='store_true', help='If this option is given, genome fasta files will not be formatted for blast.  This is useful if blast formatted indices already exist and are located in the same directory as the fasta genome files.')
+    parser.add_argument('--workdir', default='.', help='Directory under which to work.  will create a subdirectory under this dir in which to write temporary files, etc.  This subdirectory will be removed when rsd finishes.  Default is %(default)s')
+    parser.add_argument('-v', '--verbose', default=False, action='store_true')
+    args = parser.parse_args()
+
+    if not (args.forward_hits or args.reverse_hits):
+        parser.error('No argument -f/--forward-hits or -r/--reverse-hits specified.  One or both of -r/--forward-hits and -r/--reverse-hits must be given.')
+    if args.evalue < 0:
+        parser.error('argument -e/--evalue must be a number >= 0.')
+
+    queryGenome = os.path.abspath(os.path.expanduser(args.query_genome))
+    subjectGenome = os.path.abspath(os.path.expanduser(args.subject_genome))
+
+    with rsd.nested.NestedTempDir(dir=os.path.abspath(os.path.expanduser(args.workdir)), nesting=0) as tmpDir:
+
+        # format fasta files if needed.
+        if args.no_format:
+            # assume blast formatted index files coexist with the fasta files
+            queryFastaPath = queryGenome
+            subjectFastaPath = subjectGenome
+        else:
+            if args.verbose:
+                print 'copying fasta files'
+            queryFastaPath = rsd.copyFastaArg(queryGenome, tmpDir)
+            subjectFastaPath = rsd.copyFastaArg(subjectGenome, tmpDir)
+            if args.verbose:
+                print 'formatting fasta files'
+            rsd.formatFastaArg(queryFastaPath)
+            rsd.formatFastaArg(subjectFastaPath)
+
+        if args.forward_hits:
+            if args.verbose:
+                print 'computing forward blast hits'
+            forwardHitsPath = os.path.abspath(os.path.expanduser(args.forward_hits))
+            rsd.computeBlastHits(queryFastaPath, subjectFastaPath, forwardHitsPath, args.evalue, workingDir=tmpDir)
+        if args.reverse_hits:
+            if args.verbose:
+                print 'computing reverse blast hits'
+            reverseHitsPath = os.path.abspath(os.path.expanduser(args.reverse_hits))
+            rsd.computeBlastHits(subjectFastaPath, queryFastaPath, reverseHitsPath, args.evalue, workingDir=tmpDir)
+
+
+if __name__ == '__main__':
+   main()
+
+   
+# last line
