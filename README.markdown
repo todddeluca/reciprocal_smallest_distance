@@ -53,32 +53,72 @@ You can optionally specify a file containing ids using the `--ids` option.  Then
 Using `--divergence` and `--evalue`, you have the option of using different thresholds from the defaults.
 
 
-Get help on how to run rsd_search:
+Get help on how to run `rsd_search`, `rsd_blast`, or `rsd_format`:
     
     rsd_search -h
+    rsd_blast -h
+    rsd_format -h
 
 
-Find orthologs between all the sequences in the query and subject genomes.
-
-    rsd_search -d 0.2 -e 1e-20 -q examples/genomes/Mycoplasma_genitalium.aa/Mycoplasma_genitalium.aa \
-    --subject-genome=examples/genomes/Mycobacterium_leprae.aa/Mycobacterium_leprae.aa \
-    -o examples/Mycoplasma_genitalium.aa_Mycobacterium_leprae.aa_0.2_1e-20.orthologs.txt
-
-
-Find orthologs using non-default divergence and evalue thresholds
+Find orthologs between all the sequences in the query and subject genomes, using default divergence and evalue thresholds
 
     rsd_search -q examples/genomes/Mycoplasma_genitalium.aa/Mycoplasma_genitalium.aa \
     --subject-genome=examples/genomes/Mycobacterium_leprae.aa/Mycobacterium_leprae.aa \
-    -o examples/Mycoplasma_genitalium.aa_Mycobacterium_leprae.aa_0.8_1e-5.orthologs.txt \
-    -d 0.8 -e 1e-5
+    -o Mycoplasma_genitalium.aa_Mycobacterium_leprae.aa_0.8_1e-5.orthologs.txt
 
 
-Find orthologs between all the sequences in the query and subject genomes using genomes that have already been formatted for blast.
+Find orthologs using several non-default divergence and evalue thresholds
 
     rsd_search -q examples/genomes/Mycoplasma_genitalium.aa/Mycoplasma_genitalium.aa \
     --subject-genome=examples/genomes/Mycobacterium_leprae.aa/Mycobacterium_leprae.aa \
-    -o examples/Mycoplasma_genitalium.aa_Mycobacterium_leprae.aa_0.8_1e-5.orthologs.txt \
+    -o Mycoplasma_genitalium.aa_Mycobacterium_leprae.aa.several.orthologs.txt \
+    --de 0.2 1e-20 --de .5 0.00001 --de 0.8 0.1
+
+
+It is not necessary to format a FASTA file for BLAST or compute BLAST hits because `rsd_search` does it for you.  
+However if you plan on running `rsd_search` multiple times for the same genomes, especially for large genomes, 
+you can save time by using `rsd_format` to preformatting the FASTA files and `rsd_blast` to precomputing the BLAST hits.
+When running `rsd_blast`, make sure to use an --evalue as large as the largest evalue threshold you intend to give to `rsd_search`.
+
+Here is how to format a pair of FASTA files in place:
+
+    rsd_format -g examples/genomes/Mycoplasma_genitalium.aa/Mycoplasma_genitalium.aa
+    rsd_format -g examples/genomes/Mycobacterium_leprae.aa/Mycobacterium_leprae.aa
+    
+And here is how to format the FASTA files, putting the results in another directory (the current directory in this case)
+
+    rsd_format -g examples/genomes/Mycoplasma_genitalium.aa/Mycoplasma_genitalium.aa -d .
+    rsd_format -g examples/genomes/Mycobacterium_leprae.aa/Mycobacterium_leprae.aa -d .
+
+Here is how to compute forward and reverse blast hits (using the default evalue):
+
+    rsd_blast -v -q examples/genomes/Mycoplasma_genitalium.aa/Mycoplasma_genitalium.aa \
+    --subject-genome=examples/genomes/Mycobacterium_leprae.aa/Mycobacterium_leprae.aa \
+    --forward-hits q_s.hits --reverse-hits s_q.hits
+
+Here is how to compute forward and reverse blast hits for `rsd_search`, using genomes that have already been formatted for blast
+and a non-default evalue
+
+    rsd_blast -v -q Mycoplasma_genitalium.aa \
+    --subject-genome=Mycobacterium_leprae.aa \
+    --forward-hits q_s.hits --reverse-hits s_q.hits \
+    --no-format --evalue 0.1
+
+Find orthologs between all the sequences in the query and subject genomes using genomes that have already been formatted for blast
+
+    rsd_search -q Mycoplasma_genitalium.aa \
+    --subject-genome=Mycobacterium_leprae.aa \
+    -o Mycoplasma_genitalium.aa_Mycobacterium_leprae.aa_0.8_1e-5.orthologs.txt \
     --no-format
+
+
+Find orthologs between all the sequences in the query and subject genomes using hits that have already been computed.  Notice that --no-format 
+is included, because since the blast hits have already been computed the genomes do not need to be formatted for blast.
+
+    rsd_search -v --query-genome Mycoplasma_genitalium.aa \
+    --subject-genome=Mycobacterium_leprae.aa \
+    -o Mycoplasma_genitalium.aa_Mycobacterium_leprae.aa.default.orthologs.txt \
+    --forward-hits q_s.hits --reverse-hits s_q.hits --no-format
 
 
 Find orthologs for specific sequences in the query genome.  For finding orthologs for only a few sequences, using `--no-blast-cache` can
@@ -90,19 +130,6 @@ speed up computation.  YMMV.
     --ids examples/Mycoplasma_genitalium.aa.ids.txt --no-blast-cache
 
 
-## Formatting FASTA Files For BLAST
-
-It is not necessary to format a fasta file for BLAST, because rsd_search does it for you.  However should you find yourself running
-the program multiple times, especially for large genomes which take some time to format, preformatting the fasta files and 
-then running `rsd_search` with the `--no-format` option can save you time.  Here is how to format a FASTA file in place:
-
-    rsd_format -g examples/genomes/Mycoplasma_genitalium.aa/Mycoplasma_genitalium.aa -v
-    
-And here is how to format the FASTA file, putting the results in a specific directory:
-
-    rsd_format -g examples/genomes/Mycoplasma_genitalium.aa/Mycoplasma_genitalium.aa -v -d /my/place/for/genomes
-
-
-## Extras
+## Miscellaneous Extras
 
 A user might also want to change the alpha shape parameter for the gamma distribution used in the likelihood calculations of the codeml package of paml.  This can be done by editing the codeml.ctl file included in the distribution.  See the documentation for codeml for more details.

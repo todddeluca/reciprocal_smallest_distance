@@ -32,7 +32,7 @@ setup(
     platforms = "Posix; MacOS X",
     url = "http://roundup.hms.harvard.edu/",   # project home page, if any
     download_url = "http://roundup.hms.harvard.edu/static/download/rsd-%s.tgz"%rsd.__version__,
-    scripts = ['bin/rsd_search', 'bin/rsd_format'],
+    scripts = ['bin/rsd_search', 'bin/rsd_format', 'bin/rsd_blast'],
     packages = ['rsd'],
     package_data = {
         'rsd': ['*.ctl', '*.dat'],
