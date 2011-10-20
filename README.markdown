@@ -1,13 +1,23 @@
-Author: Todd F. DeLuca  
+# Reciprocal Smallest Distance
+
+Authors: Todd F. DeLuca, Dennis P. Wall  
 Organization: Wall Laboratory, Center for Biomedical Informatics, Harvard Medical School, USA, Earth, Sol System, Orion Arm, Milky Way.  
 Date: 2011/08/29  
 
-This package contains the scripts needed to run the Reciprocal Smallest Distance (RSD) ortholog detection algorithm as well as examples of input and output files.
+
+## Introduction
+
+Wall, D.P., Fraser, H.B. and Hirsh, A.E. (2003) Detecting putative orthologs, Bioinformatics, 19, 1710-1711.
+
+The reciprocal smallest distance (RSD) (Wall, et al., 2003. http://bioinformatics.oxfordjournals.org/content/19/13/1710) algorithm accurately infers orthologs between pairs of genomes by considering global sequence alignment and maximum likelihood evolutionary distance between sequences.  Orthologs inferred with RSD for many species are available at Roundup (http://roundup.hms.harvard.edu/), which provides multi-species clusters of orthologous genes, output in formats for other phylogenetics packages, and sequence metadata such as Gene Ontology terms and database cross-references.
+
+This package contains source code, scripts for running RSD, and example input and output files.
 
 - README.md:  the file you are reading now
 - bin/rsd_search: a script that runs the reciprocal smallest distance (RSD) algorithm to search for orthologs.
+- bin/rsd_blast: a script that computes and saves BLAST hits for use in multiple runs of RSD.
 - bin/rsd_format: a script that turns FASTA-formatted genomes into BLAST-formatted indexes.
-- rsd/: package implementing the RSD algorithm.  
+- rsd/: python package implementing the RSD algorithm.  
 - rsd/jones.dat, rsd/codeml.ctl:  used by codeml/paml to compute the evolutionary distance between two sequences.
 - examples/:  a directory containing examples of inputs and outputs to rsd, including fasta-formatted genome protein sequence files,
  a query sequence id file (for --ids), and an orthologs output file.
@@ -17,7 +27,7 @@ This package contains the scripts needed to run the Reciprocal Smallest Distance
 
 ### Prerequisites
 
-RSD depends on Python, NCBI BLAST, PAML, and Kalign.  It has been tested to work with the following versions.  It might work with other versions too.
+RSD depends on Python, NCBI BLAST, PAML, and Kalign.  It has been tested to work with the versions below.  It might work with other versions too.
 
 Install:
 
@@ -28,7 +38,7 @@ Install:
 
 Add the executables for python (version 2.7), makeblastdb, blastp, codeml, and kalign, to your PATH.
 
-### Installing from a tarball
+### Installing From a Tarball
 
 Download and untar the latest version from github:
 
@@ -130,6 +140,36 @@ speed up computation.  YMMV.
     --ids examples/Mycoplasma_genitalium.aa.ids.txt --no-blast-cache
 
 
-## Miscellaneous Extras
+## Output Formats
 
-A user might also want to change the alpha shape parameter for the gamma distribution used in the likelihood calculations of the codeml package of paml.  This can be done by editing the codeml.ctl file included in the distribution.  See the documentation for codeml for more details.
+Orthologs can be saved in several different formats using the `--outfmt` option of `rsd_search`.  The default format, `--outfmt -1`, refers to `--outfmt 3`.
+Inspired by Uniprot dat files, a set of orthologs starts with a parameters line, then has 0 or more ortholog lines, then has an end line.
+The parametes are the query genome name, subject genome name, divergence threshold, and evalue threshold.  Each ortholog is on a single line listing 
+the query sequence id, the subject sequence id, and the maximum likelihood distance estimate.  This format can represent orthologs for multiple
+sets of parameters in a single file as well as sets of parameters with no orthologs.  Therefore it is suitable for use with `rsd_search` when specifying
+multiple divergence and evalue thresholds.
+
+Here is an example containing 2 parameter combinations, one of which has no orthologs:
+
+    PA\tLACJO\tYEAS7\t0.2\t1e-15
+    OR\tQ74IU0\tA6ZM40\t1.7016
+    OR\tQ74K17\tA6ZKK5\t0.8215
+    //
+    PA\tMYCGE\tMYCHP\t0.2\t1e-15
+    //
+    
+The original format of RSD, `--outfmt 1`, is provided for backward compatibility.  Each line contains an ortholog, represented as subject sequence id, query sequence id, and maximum likelihood distance estimate.  It can only represent a single set of orthologs in a file.
+
+Example:
+
+    A6ZM40\tQ74IU0\t1.7016
+    A6ZKK5\tQ74K17\t0.8215
+
+Also provided for backward compatibility is a format used internally by Roundup (http://roundup.hms.harvard.edu/) which is like the original RSD format, except the query sequence id column is before the subject sequence id.
+
+Example:
+
+    Q74IU0\tA6ZM40\t1.7016
+    Q74K17\tA6ZKK5\t0.8215
+
+
