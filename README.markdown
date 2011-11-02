@@ -43,11 +43,11 @@ Add the executables for python (version 2.7), makeblastdb, blastp, codeml, and k
 Download and untar the latest version from github:
 
     cd ~
-    curl -L https://github.com/downloads/todddeluca/reciprocal_smallest_distance/reciprocal_smallest_distance-VERSION.tar.gz | tar xvz
+    curl -L https://github.com/downloads/todddeluca/reciprocal_smallest_distance/reciprocal_smallest_distance-$VERSION.tar.gz | tar xvz
     
 Install reciprocal\_smallest\_distance, making sure to use Python 2.7:
 
-    cd reciprocal_smallest_distance-VERSION
+    cd reciprocal_smallest_distance-$VERSION
     python setup.py install
 
 
