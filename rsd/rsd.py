@@ -1,4 +1,5 @@
 #!/usr/bin/env python2.7
+
 # RSD: The reciprocal smallest distance algorithm.
 #   Wall, D.P., Fraser, H.B. and Hirsh, A.E. (2003) Detecting putative orthologs, Bioinformatics, 19, 1710-1711.
 # Original author: Dennis P. Wall, Department of Biological Sciences, Stanford University.
@@ -172,7 +173,6 @@ def pamlGetDistance(path):
     # adding a pause on the off-chance that the filesystem might be lagging a bit, causing the open() to fail below.
     # I think it is more likely that codeml in runPaml_all() is failing before writing the file.
     if not os.path.isfile(filename):
-        import time
         time.sleep(0.5)
 
     with open(filename) as rst:
@@ -372,8 +372,16 @@ def getGoodDivergenceAlignedTrimmedSeqPair(seqId, seq, hitSeqId, hitSeq, workPat
         alignedFasta = alignFastaClustalw(inputFasta, workPath)
     else:
         alignedFasta = alignFastaKalign(inputFasta)
+        # try to recover from rare, intermittent failure of fasta alignment
+        if not alignedFasta:
+            logging.error('fasta alignment failed.\ninputFasta={}\nalignedFasta={}')
+            time.sleep(0.1)
+            alignedFasta = alignFastaKalign(inputFasta)
     try:
-        (alignedIdAndSeq, alignedHitIdAndSeq) = ((fasta.idFromName(seqNameline), seq) for seqNameline, seq in fasta.readFasta(cStringIO.StringIO(alignedFasta)))
+        # parse the aligned fasta into sequence ids and sequences
+        namelinesAndSeqs = list(fasta.readFasta(cStringIO.StringIO(alignedFasta)))
+        idAndSeqs = [(fasta.idFromName(seqNameline), seq) for seqNameline, seq in namelinesAndSeqs]
+        alignedIdAndSeq, alignedHitIdAndSeq = idAndSeqs
     except Exception as e:
         e.args += (inputFasta, alignedFasta)
         raise
