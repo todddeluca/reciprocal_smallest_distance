@@ -37,6 +37,7 @@ setup(
     package_data = {
         'rsd': ['*.ctl', '*.dat'],
         },
+    test_suite='test.test_search.TestSearch',
     classifiers = [
         'Development Status :: 5 - Production/Stable',
         'Environment :: Console',
