@@ -167,7 +167,7 @@ def readFasta(fastaFile, strict=True):
         yield nameline, seq
 
 
-def readFastaLines(fastaFile, strict=True, goodOnly=True):
+def readFastaLines(fastaFile, strict=True, goodOnly=True, filterBlankLines=False):
     '''
     fastaFile: a file-like object or a path to a fasta file
     yields: a seq of fasta sequence lines for each sequence in the fasta file.
@@ -175,10 +175,10 @@ def readFastaLines(fastaFile, strict=True, goodOnly=True):
     '''
     if isinstance(fastaFile, basestring):
         with open(fastaFile) as fh:
-            for lines in _fastaSeqIter(fh, strict, goodOnly):
+            for lines in _fastaSeqIter(fh, strict, goodOnly, filterBlankLines):
                 yield lines
     else:
-        for lines in _fastaSeqIter(fastaFile, strict, goodOnly):
+        for lines in _fastaSeqIter(fastaFile, strict, goodOnly, filterBlankLines):
             yield lines
 
     
@@ -194,7 +194,7 @@ def splitSeq(seq):
     return [name, chars]
     
 
-def _fastaSeqIter(filehandle, strict=True, goodOnly=True):
+def _fastaSeqIter(filehandle, strict=True, goodOnly=True, filterBlankLines=False):
     '''
     filehandle: file object containing fasta-formatted sequences.
     strict: if True, raise an exception when a malformed fasta sequence is encountered.
@@ -202,11 +202,12 @@ def _fastaSeqIter(filehandle, strict=True, goodOnly=True):
       E.g. a nameline directly after a nameline, like '>foo\n>bar\nCTAGCTAGGGCA\n'
     goodOnly: if True, only yield well-formed fasta sequences, ones with a nameline and one or more sequence datalines and no blank lines.
       if False and strict is False, all sequences, malformed or otherwise, will be yielded.  there will always be at least one (possibly blank) line.
+    filterBlankLines: if True, no blank lines (lines only containing whitespace) will be yielded and blank lines will not raise an exception.
     Parses the filehandle, yielding one fasta sequence at a time.
     yields: a seq of fasta sequence lines.  the first line is the nameline.  the other lines are the sequence data lines.  
     '''
-    for lines in _splitOnNamelines(filehandle):
-        if not lines[0] or lines[0][:1] != '>':
+    for lines in _splitOnNamelines(filehandle, filterBlankLines):
+        if not lines[0] or lines[0][0] != '>':
             if strict:
                 raise Exception('FASTA error: sequence must start with a nameline.', lines)
             elif not goodOnly:
@@ -225,20 +226,23 @@ def _fastaSeqIter(filehandle, strict=True, goodOnly=True):
             yield lines
 
 
-def _splitOnNamelines(filehandle):
+def _splitOnNamelines(filehandle, filterBlankLines=False):
     '''
     split the lines in filehandle on namelines.
     yields: seq of lines, where the first line is a nameline (except if filehandle starts with a non-nameline) the other lines are lines until the next nameline
     or the end of the file.  lines include newlines.  length of yielded seq always contains at least one line.
     Said another way, the seq of lines will always contain at least one line.  only the first line will ever be a nameline.
+    filterBlankLines: if True, no blank lines (lines only containing whitespace) will be yielded.
     '''
     lines = []
     for line in filehandle:
-        if line and line[:1] == '>': # a nameline
+        if line and line[0] == '>': # a nameline
             if lines:
                 yield lines # yield last sequence
             lines = [line] # start new sequence
-        else: 
+        elif not filterBlankLines:
+            lines.append(line)
+        elif line.strip():
             lines.append(line)
     if lines:
         yield lines
