@@ -6,12 +6,13 @@
 *.py[co]
 *.old
 *.class
-#*#
+\#*#
 
 # Ignore dirs from packaging and distributing
 dist
 build
-reciprocal_smallest_distance.egg-info
+# reciprocal_smallest_distance.egg-info
+/*.egg-info/
 MANIFEST
 
 # Ignore all tmp dirs and everything in them

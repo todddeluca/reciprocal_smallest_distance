@@ -430,17 +430,23 @@ def any(pred, seq):
 # SERIALIZATION HELPER FUNCTIONS
 ################################
 
-def loadObject(pickleFilename, protocol=-1):
+def loadObject(pickleFilename, protocol=-1, mode='rb'):
+    '''
+    use 'rb' mode for protocol 2, 'r' for protocol 0
+    '''
     import cPickle
-    fh = open(pickleFilename)
+    fh = open(pickleFilename, mode)
     obj = cPickle.load(fh)
     fh.close()
     return obj
 
 
-def dumpObject(obj, pickleFilename, protocol=-1):
+def dumpObject(obj, pickleFilename, protocol=-1, mode='wb'):
+    '''
+    use 'wb' mode for protocol 2, 'w' for protocol 0
+    '''
     import cPickle
-    fh = open(pickleFilename, 'w')
+    fh = open(pickleFilename, mode)
     cPickle.dump(obj, fh, protocol=protocol)
     fh.close()
     return obj

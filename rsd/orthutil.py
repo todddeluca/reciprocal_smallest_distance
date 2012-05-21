@@ -1,3 +1,38 @@
+'''
+Module for handling various textual ortholog serialization formats produced by
+RSD or Roundup.
+
+The oldest format is one ortholog per line:
+    SubjectId QueryId Distance
+Where SubjectId is the id of a sequence from the subject genome which is
+orthologous to QueryId, the id of a sequence from the query genome, and
+Distance is the maximum likelihood distance estimate from PAML/codeml.
+The problem with the oldest format is it confusing to put the subject id first
+when by convention the query genome comes first when running the algorithm or
+naming files.
+
+The next format is one ortholog per line:
+    QueryId SubjectId Distance
+There are two problems with this format and the previous one:
+    One can not serialize orthologs for multiple pairs of genomes or parameter
+    combinations to a single file and some filesystems perform badly when
+    handling millions of files.
+    When putting multiple sets of orthologs into a single file, one can not
+    represent the (admittedly rare) case of having no orthologs for a given
+    pair of genomes (and divergence and evalue).
+
+The current format is loosely based on the dat file format used by UniProt.
+A set of orthologs starts with a params row, then has 0 or more ortholog rows,
+then has an end row.  It is easy to write a streaming parser and can represent
+a set of parameters with no orthologs.
+Example snippet:
+PA      377629  553174  0.2     1e-20
+OR      C5BPU7  D9RR02  1.4127
+OR      C5BKE0  D9RR03  2.1041
+//
+PA      502025  521010  0.2     1e-20
+//
+'''
 
 import io
 
@@ -90,6 +125,7 @@ def orthDatasToFile(orthDatas, path, mode='w'):
 
 def orthDatasToStr(orthDatas):
     '''
+    orthDatas: a list of rsd orthDatas. orthData is a pair of params and orthologs
     serialize orthDatas as a string.
     returns: a string containing the serialized orthDatas.
     '''
@@ -100,6 +136,7 @@ def orthDatasToStr(orthDatas):
 
 def orthDatasToStream(orthDatas, handle):
     '''
+    orthDatas: a list of rsd orthDatas. orthData is a pair of params and orthologs
     handle: an open io stream (e.g. a filehandle or a StringIO) to which the orthDatas are written
     the handle is not opened or closed in this function.
     '''
