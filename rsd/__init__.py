@@ -1,5 +1,4 @@
 
-__version__ = '1.1.1'
-
+from rsd.version import __version__
 from rsd import *
 
