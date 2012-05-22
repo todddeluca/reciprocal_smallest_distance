@@ -15,10 +15,8 @@ except ImportError:
 import os
 import sys
 
-# import __version__ from package.
-# Do not 'import rsd.version' to avoid failing on uninstalled dependencies.
-execfile('rsd/version.py')
-
+# package version
+version = '1.1.2'
 
 if sys.version_info <= (2, 6):
     sys.stderr.write("ERROR: rsd requires Python Version 2.7 or above...exiting.\n")
@@ -26,7 +24,7 @@ if sys.version_info <= (2, 6):
     
 setup(
     name = "reciprocal_smallest_distance",
-    version = __version__,
+    version = version,
     author = "Todd F. DeLuca, Dennis P. Wall",
     author_email = "todd_deluca@hms.harvard.edu",
     description = "Reciprocal Smallest Distance (RSD) finds pairwise orthologous genes using global sequence alignment and maximum likelihood evolutionary distance estimates.",
