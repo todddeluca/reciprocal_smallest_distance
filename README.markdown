@@ -38,13 +38,22 @@ Install:
 
 Add the executables for python (version 2.7), makeblastdb, blastp, codeml, and kalign, to your PATH.
 
-### Installing From a Tarball
+
+### Install Using Pip
+
+Use pip ( http://www.pip-installer.org/ ) to easily install
+reciprocal\_smallest\_distance:
+
+    pip install reciprocal_smallest_distance
+
+
+### Install From a Tarball
 
 Download and untar the latest version from github:
 
     cd ~
     curl -L https://github.com/downloads/todddeluca/reciprocal_smallest_distance/reciprocal_smallest_distance-$VERSION.tar.gz | tar xvz
-    
+
 Install reciprocal\_smallest\_distance, making sure to use Python 2.7:
 
     cd reciprocal_smallest_distance-$VERSION
@@ -64,7 +73,7 @@ Using `--divergence` and `--evalue`, you have the option of using different thre
 
 
 Get help on how to run `rsd_search`, `rsd_blast`, or `rsd_format`:
-    
+
     rsd_search -h
     rsd_blast -h
     rsd_format -h
@@ -94,7 +103,7 @@ Here is how to format a pair of FASTA files in place:
 
     rsd_format -g examples/genomes/Mycoplasma_genitalium.aa/Mycoplasma_genitalium.aa
     rsd_format -g examples/genomes/Mycobacterium_leprae.aa/Mycobacterium_leprae.aa
-    
+
 And here is how to format the FASTA files, putting the results in another directory (the current directory in this case)
 
     rsd_format -g examples/genomes/Mycoplasma_genitalium.aa/Mycoplasma_genitalium.aa -d .
@@ -157,7 +166,7 @@ Here is an example containing 2 parameter combinations, one of which has no orth
     //
     PA\tMYCGE\tMYCHP\t0.2\t1e-15
     //
-    
+
 The original format of RSD, `--outfmt 1`, is provided for backward compatibility.  Each line contains an ortholog, represented as subject sequence id, query sequence id, and maximum likelihood distance estimate.  It can only represent a single set of orthologs in a file.
 
 Example:
