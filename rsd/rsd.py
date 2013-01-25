@@ -370,7 +370,9 @@ def getGoodDivergenceAlignedTrimmedSeqPair(seqId, seq, hitSeqId, hitSeq, workPat
         alignedFasta = alignFastaKalign(inputFasta)
         # try to recover from rare, intermittent failure of fasta alignment
         if not alignedFasta:
-            logging.error('fasta alignment failed.\ninputFasta={}\nalignedFasta={}')
+            logging.error('fasta alignment failed.\ninputFasta=%s\n' +
+                          'alignedFasta=%s\nSleep and retry alignment.',
+                          inputFasta, alignedFasta)
             time.sleep(0.1)
             alignedFasta = alignFastaKalign(inputFasta)
     try:
