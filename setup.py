@@ -16,7 +16,7 @@ import os
 import sys
 
 # package version
-version = '1.1.3'
+version = '1.1.4'
 
 if sys.version_info <= (2, 6):
     sys.stderr.write("ERROR: rsd requires Python Version 2.7 or above...exiting.\n")
