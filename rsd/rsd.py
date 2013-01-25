@@ -1,19 +1,22 @@
 #!/usr/bin/env python2.7
 
-# RSD: The reciprocal smallest distance algorithm.
-#   Wall, D.P., Fraser, H.B. and Hirsh, A.E. (2003) Detecting putative orthologs, Bioinformatics, 19, 1710-1711.
-# Original author: Dennis P. Wall, Department of Biological Sciences, Stanford University.
-# Contributors: I-Hsien Wu, Computational Biology Initiative, Harvard Medical School
-# Maintainer: Todd F. DeLuca, Center for Biomedical Informatics, Harvard Medical School
-#
+'''
+RSD: The reciprocal smallest distance algorithm.
+  Wall, D.P., Fraser, H.B. and Hirsh, A.E. (2003) Detecting putative orthologs, Bioinformatics, 19, 1710-1711.
+Original author: Dennis P. Wall, Department of Biological Sciences, Stanford University.
+Contributors: I-Hsien Wu, Computational Biology Initiative, Harvard Medical School
+Maintainer: Todd F. DeLuca, Center for Biomedical Informatics, Harvard Medical School
 
-# This program is written to run on linux.  It has not been tested on Windows.
-# To run this program you need to have installed on your system:
-# Python 2.7
-# NCBI BLAST 2.2.24  
-# paml 4.4
-# Kalign 2.04 (recommended) or clustalw 2.0.9 (deprecated)
-# see README FOR FULL DETAILS
+
+This program is written to run on linux.  It has not been tested on Windows.
+To run this program you need to have installed on your system:
+Python 2.7
+NCBI BLAST 2.2.24  
+paml 4.4
+Kalign 2.04 (recommended) or clustalw 2.0.9 (deprecated)
+See README for full details.
+'''
+
 
 import argparse
 import cStringIO
@@ -34,8 +37,6 @@ PAML_ERROR_MSG = 'paml_error'
 FORWARD_DIRECTION = 0
 REVERSE_DIRECTION = 1
 DASHLEN_RE = re.compile('^(-*)(.*?)(-*)$')
-
-JIKE_DEBUG = util.getBoolFromEnv('ROUNDUP_RSD_DEBUG', False)
 
 MAX_HITS = 3
 MATRIX_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'jones.dat')
@@ -317,9 +318,6 @@ def getGoodEvalueHits(seqId, seq, getHitsFunc, getSeqFunc, evalue):
                 hitSeq = getSeqFunc(hitSeqId)
                 goodhits.append((hitSeqId, hitSeq, hitEvalue))
 
-    if JIKE_DEBUG:
-        for data in goodhits:
-            print 'hit\t{0}\t{2}'.format(*data)
     return goodhits
 
 
@@ -349,8 +347,6 @@ def getDistanceForAlignedSeqPair(seqId, alignedSeq, hitSeqId, alignedHitSeq, wor
     try:
         subprocess.check_call('codeml >/dev/null', cwd=workPath, shell=True) # /dev/null to silence extraneous codeml output
         distance = pamlGetDistance(workPath)
-        if JIKE_DEBUG:
-            print 'dist\t{0}\t{1}'.format(hitSeqId, distance)
         return distance
     finally:
         for filePath in [dataFilePath, treeFilePath, outFilePath]:
@@ -397,11 +393,6 @@ def getGoodDivergenceAlignedTrimmedSeqPair(seqId, seq, hitSeqId, hitSeq, workPat
         divIdSeqs.append(g)
     divIdSeqs.sort()
 
-    if JIKE_DEBUG:
-        for data in divIdSeqs:
-            if data[2] != seqId:
-                print 'div\t{}\t{}'.format(data[2], data[1])
-        
     # check for excessive divergence
     leastDivergedDashCount, leastDivergedDiv, leastDivergedId, leastDivergedSeq = divIdSeqs[0]
     # check for excessive divergence and generate dashtrim.
@@ -508,9 +499,6 @@ def _computeOrthologsSub(querySeqIds, getQuerySeqFunc, getSubjectSeqFunc, divEva
 
     # get ortholog(s) for each query sequence
     for queryId in querySeqIds:
-        if JIKE_DEBUG:
-            print
-            print 'forward\t{0}'.format(queryId)
         querySeq = getQuerySeqFunc(queryId)
         # get forward hits, evalues, alignments, divergences, and distances that meet the loosest standards of all the divs and evalues.
         # get forward hits and evalues, filtered by max evalue
@@ -557,8 +545,6 @@ def _computeOrthologsSub(querySeqIds, getQuerySeqFunc, getSubjectSeqFunc, divEva
         # get reverese hits that meet the loosest standards of the divs and evalues associated with that minimum distance hit.
         # performance note: wasteful or necessary to realign and compute distance between minimum hit and query seq?
         for hitId in minimumHitIdToHitData:
-            if JIKE_DEBUG:
-                print 'reverse\t{0}'.format(hitId)
             hitData = minimumHitIdToHitData[hitId]
             hitSeq = hitData['hitSeq']
             # since minimum hit might not be associated with all divs and evalues, need to find the loosest div and evalue associated with this minimum hit.
@@ -607,8 +593,6 @@ def _computeOrthologsSub(querySeqIds, getQuerySeqFunc, getSubjectSeqFunc, divEva
                 minimumRevHitDatas = minimumDicts(goodRevHitDatas, 'distance')
                 if queryId in [revHitData['revHitId'] for revHitData in minimumRevHitDatas]:
                     divEvalueToOrthologs[divEvalue].append((queryId, hitId, hitData['distance']))
-                    if JIKE_DEBUG:
-                        print 'ortholog\t{0}\t{1}\t{2}'.format(queryId, hitId, hitData['distance'])
 
     return divEvalueToOrthologs
 
@@ -622,11 +606,6 @@ def computeOrthologsUsingOnTheFlyHits(queryFastaPath, subjectFastaPath, divEvalu
     workingDir: a directory in which to create, use, and delete temporary files and dirs.
     This computes blast hits on-the-fly, so it slower than rounduPrecompute() for computing orthologs for full genomes.
     '''
-    if JIKE_DEBUG:
-        print
-        print 'query_genome\t'+os.path.basename(queryFastaPath)
-        print 'subject_genome\t'+os.path.basename(subjectFastaPath)
-
     # get blast hits using the least stringent evalue from among all the evalues in divEvalues.
     maxEvalue = str(max(float(evalue) for div, evalue in divEvalues))
     getForwardHits = makeGetHitsOnTheFly(subjectFastaPath, maxEvalue, workingDir)
