@@ -12,8 +12,8 @@ except ImportError:
     from distutils.core import setup
 
 
-import os
 import sys
+import re
 
 # parse version from package/module without importing or evaluating the code
 with open('rsd/rsd.py') as fh:
