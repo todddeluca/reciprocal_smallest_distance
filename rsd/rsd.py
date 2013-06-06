@@ -17,8 +17,11 @@ Kalign 2.04 (recommended) or clustalw 2.0.9 (deprecated)
 See README for full details.
 '''
 
+# python package version
+# should match r"^__version__ = '(?P<version>[^']+)'$" for setup.py
+__version__ = '1.1.5'
 
-import argparse
+
 import cStringIO
 import glob
 import logging

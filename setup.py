@@ -10,18 +10,23 @@ try:
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
-            
+
 
 import os
 import sys
 
-# package version
-version = '1.1.4'
+# parse version from package/module without importing or evaluating the code
+with open('rsd/rsd.py') as fh:
+    for line in fh:
+        m = re.search(r"^__version__ = '(?P<version>[^']+)'$", line)
+        if m:
+            version = m.group('version')
+            break
 
 if sys.version_info <= (2, 6):
     sys.stderr.write("ERROR: rsd requires Python Version 2.7 or above...exiting.\n")
     sys.exit(1)
-    
+
 setup(
     name = "reciprocal_smallest_distance",
     version = version,
