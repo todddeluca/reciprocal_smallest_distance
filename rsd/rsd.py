@@ -19,7 +19,7 @@ See README for full details.
 
 # python package version
 # should match r"^__version__ = '(?P<version>[^']+)'$" for setup.py
-__version__ = '1.1.5'
+__version__ = '1.1.6'
 
 
 import cStringIO
@@ -63,8 +63,9 @@ def formatForBlast(fastaPath):
     # cmd = 'formatdb -p -o -i'+os.path.basename(fastaPath)
     # cmd = 'formatdb -p -o -i'+fastaPath
     # redirect stdout to /dev/null to make the command quiter.
-    cmd = 'makeblastdb -in {} -dbtype prot -parse_seqids >/dev/null'.format(fastaPath)
-    subprocess.check_call(cmd, shell=True)
+    cmd = ['makeblastdb', '-in', fastaPath, '-dbtype', 'prot', '-parse_seqids']
+    with open(os.devnull, 'w') as devnull:
+        subprocess.check_call(cmd, stdout=devnull)
 
 
 def getHitId(hit):
@@ -111,8 +112,10 @@ def getBlastHits(queryFastaPath, subjectIndexPath, evalue, limitHits=MAX_HITS, w
             subjectIndexPath = localIndexPath
         blastResultsPath = os.path.join(tmpDir, 'blast_results')
         # blast query vs subject, using /opt/blast-2.2.22/bin/blastp
-        cmd = 'blastp -outfmt 6 -evalue %s -query %s -db %s -out %s'%(evalue, queryFastaPath, subjectIndexPath, blastResultsPath)
-        subprocess.check_call(cmd, shell=True)
+        cmd = ['blastp', '-outfmt', '6', '-evalue', str(evalue), 
+               '-query', queryFastaPath, '-db', subjectIndexPath, 
+               '-out', blastResultsPath]
+        subprocess.check_call(cmd)
         # parse results
         hitsMap = parseResults(blastResultsPath, limitHits)
     return hitsMap
@@ -220,7 +223,9 @@ def alignFastaClustalw(input, path):
     clustalAlignmentPath = os.path.join(path, CLUSTAL_ALIGNMENT_FILENAME)
     util.writeToFile(input, clustalFastaPath)
     try:
-        subprocess.check_call('clustalw -output=fasta -infile=%s -outfile=%s 2>&1 >/dev/null'%(clustalFastaPath, clustalAlignmentPath), shell=True)
+        cmd = ['clustalw', '-output', 'fasta', '-infile', clustalFastaPath, '-outfile', clustalAlignmentPath]
+        with open(os.devnull, 'w') as devnull:
+            subprocess.check_call(cmd, stdout=devnull, stderr=devnull)
     except Exception:
         logging.exception('runClustal Error:  clustalFastaPath data = %s'%open(clustalFastaPath).read())
         raise
@@ -348,7 +353,9 @@ def getDistanceForAlignedSeqPair(seqId, alignedSeq, hitSeqId, alignedHitSeq, wor
     # run the codeml 
     
     try:
-        subprocess.check_call('codeml >/dev/null', cwd=workPath, shell=True) # /dev/null to silence extraneous codeml output
+        with open(os.devnull, 'w') as devnull:
+            subprocess.check_call(['codeml'], cwd=workPath, stdout=devnull)
+    
         distance = pamlGetDistance(workPath)
         return distance
     finally:
