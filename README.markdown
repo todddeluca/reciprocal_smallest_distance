@@ -1,23 +1,17 @@
 # Reciprocal Smallest Distance
 
-Authors: Todd F. DeLuca, Dennis P. Wall  
-Organization: Wall Laboratory, Center for Biomedical Informatics, Harvard Medical School, USA, Earth, Sol System, Orion Arm, Milky Way.  
-Date: 2011/08/29  
-
-
 ## Introduction
 
-Wall, D.P., Fraser, H.B. and Hirsh, A.E. (2003) Detecting putative orthologs, Bioinformatics, 19, 1710-1711.
+Citation: Wall, D.P., Fraser, H.B. and Hirsh, A.E. (2003) Detecting putative orthologs, Bioinformatics, 19, 1710-1711.
 
-The reciprocal smallest distance (RSD) (Wall, et al., 2003.
-http://bioinformatics.oxfordjournals.org/content/19/13/1710) algorithm
-accurately infers orthologs between pairs of genomes by considering global
-sequence alignment and maximum likelihood evolutionary distance between
-sequences.  Orthologs inferred with RSD for many species are available at
-Roundup (http://roundup.hms.harvard.edu/), which provides multi-species
-clusters of orthologous genes, output in formats for other phylogenetics
-packages, and sequence metadata such as Gene Ontology terms and database
-cross-references.
+The reciprocal smallest distance (RSD) algorithm (Wall, et al., 2003.
+http://bioinformatics.oxfordjournals.org/content/19/13/1710) accurately infers
+orthologs between pairs of genomes by considering global sequence alignment and
+maximum likelihood evolutionary distance between sequences.  Orthologs inferred
+with RSD for many species are available at Roundup
+(http://roundup.hms.harvard.edu/), which provides multi-species clusters of
+orthologous genes, output in formats for other phylogenetics packages, and
+sequence metadata such as Gene Ontology terms and database cross-references.
 
 This package contains source code, scripts for running RSD, and example input
 and output files.
@@ -57,8 +51,8 @@ kalign, to your PATH.
 
 ### Install Using Pip
 
-Use pip ( http://www.pip-installer.org/ ) to easily install
-reciprocal\_smallest\_distance:
+Use pip ( http://www.pip-installer.org/ ) to easily install the
+reciprocal\_smallest\_distance package:
 
     pip install reciprocal_smallest_distance
 
@@ -225,3 +219,31 @@ Example:
     Q74K17\tA6ZKK5\t0.8215
 
 
+## Testing
+
+This assumes you have cloned the repository.
+
+For convenience, define some environment variables:
+
+    export TMP=$HOME/tmp
+    mkdir -p $TMP
+    export REPO_PATH=<path/to/reciprocal_smallest_distance> # e.g. export REPO_PATH=~/git/reciprocal_smallest_distance
+
+Create a virtualenv in which to install RSD:
+
+    cd $TMP
+    virtualenv venv
+
+Install RSD into the virtualenv:
+
+    venv/bin/pip install -e $REPO_PATH
+
+Run an example command:
+
+    venv/bin/rsd_search -q $REPO_PATH/examples/genomes/Mycoplasma_genitalium.aa/Mycoplasma_genitalium.aa \
+    --subject-genome=$REPO_PATH/examples/genomes/Mycobacterium_leprae.aa/Mycobacterium_leprae.aa \
+    -o Mycoplasma_genitalium.aa_Mycobacterium_leprae.aa_0.8_1e-5.orthologs.txt
+
+Examine the results:
+
+    less Mycoplasma_genitalium.aa_Mycobacterium_leprae.aa_0.8_1e-5.orthologs.txt

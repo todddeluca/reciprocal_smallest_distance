@@ -19,7 +19,7 @@ See README for full details.
 
 # python package version
 # should match r"^__version__ = '(?P<version>[^']+)'$" for setup.py
-__version__ = '1.1.6'
+__version__ = '1.1.7'
 
 
 import cStringIO
@@ -31,7 +31,7 @@ import shutil
 import subprocess
 import time
 
-import tfd.fasta
+import fasta
 import nested
 import util
 
@@ -149,8 +149,8 @@ def parseResults(blastResultsPath, limitHits=MAX_HITS):
     for line in fh:
         splits = line.split()
         try:
-            seqId = tfd.fasta.idFromName(splits[0]) # remove namespace prefix, e.g. 'gi|'
-            hitId = tfd.fasta.idFromName(splits[1])
+            seqId = fasta.idFromName(splits[0]) # remove namespace prefix, e.g. 'gi|'
+            hitId = fasta.idFromName(splits[1])
             hitEvalue = float(splits[10])
         except Exception as e:
             logging.exception('parseResults(): prevSeqId: {}, prevHitId: {}, line: {}'.format(prevSeqId, prevHitId, line))
@@ -267,8 +267,8 @@ def makeGetSeqForId(genomeFastaPath):
     # in memory dict performs much better than on-disk retrieval with xdget or fastacmd.
     # and genome fasta files do not take much space (on a modern computer).
     fastaMap = {}
-    for (seqNameline, seq) in tfd.fasta.readFasta(genomeFastaPath):
-        seqId = tfd.fasta.idFromName(seqNameline)
+    for (seqNameline, seq) in fasta.readFasta(genomeFastaPath):
+        seqId = fasta.idFromName(seqNameline)
         fastaMap[seqId] = seq
     def getSeqForIdInMemory(seqId):
         return fastaMap[seqId]
@@ -387,8 +387,8 @@ def getGoodDivergenceAlignedTrimmedSeqPair(seqId, seq, hitSeqId, hitSeq, workPat
             alignedFasta = alignFastaKalign(inputFasta)
     try:
         # parse the aligned fasta into sequence ids and sequences
-        namelinesAndSeqs = list(tfd.fasta.readFasta(cStringIO.StringIO(alignedFasta)))
-        idAndSeqs = [(tfd.fasta.idFromName(seqNameline), seq) for seqNameline, seq in namelinesAndSeqs]
+        namelinesAndSeqs = list(fasta.readFasta(cStringIO.StringIO(alignedFasta)))
+        idAndSeqs = [(fasta.idFromName(seqNameline), seq) for seqNameline, seq in namelinesAndSeqs]
         alignedIdAndSeq, alignedHitIdAndSeq = idAndSeqs
     except Exception as e:
         e.args += (inputFasta, alignedFasta)
@@ -455,7 +455,7 @@ def computeOrthologs(queryFastaPath, subjectFastaPath, divEvalues, getForwardHit
     #   compute orthologs and unswap results.
     #   roundup time complexity is roughly linear in the number of sequences in the query genome.
     genomeSwapOptimization = True
-    if not querySeqIds and genomeSwapOptimization and tfd.fasta.numSeqsInFastaDb(subjectFastaPath) < tfd.fasta.numSeqsInFastaDb(queryFastaPath):
+    if not querySeqIds and genomeSwapOptimization and fasta.numSeqsInFastaDb(subjectFastaPath) < fasta.numSeqsInFastaDb(queryFastaPath):
         # print 'roundup(): subject genome has fewer sequences than query genome.  internally swapping query and subject to improve speed.'
         isSwapped = True
         # swap query and subject, forward and reverse
@@ -470,7 +470,7 @@ def computeOrthologs(queryFastaPath, subjectFastaPath, divEvalues, getForwardHit
 
     # if no querySeqIds were specified, get orthologs for every query sequence
     if not querySeqIds:
-        querySeqIds = list(tfd.fasta.readIds(queryFastaPath))
+        querySeqIds = list(fasta.readIds(queryFastaPath))
         
     # get orthologs for every (div, evalue) combination
     with nested.NestedTempDir(dir=workingDir, nesting=0) as tmpDir:

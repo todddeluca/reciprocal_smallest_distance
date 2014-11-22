@@ -40,7 +40,6 @@ setup(
     download_url = "https://github.com/todddeluca/reciprocal_smallest_distance/downloads",
     scripts = ['bin/rsd_search', 'bin/rsd_format', 'bin/rsd_blast'],
     packages = ['rsd'],
-    install_requires = ['tfd>=0.2.1'],
     package_data = {
         'rsd': ['*.ctl', '*.dat'],
         },
